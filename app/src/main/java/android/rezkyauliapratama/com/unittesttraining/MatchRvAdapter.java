@@ -13,9 +13,17 @@ import java.util.List;
 
 public class MatchRvAdapter extends RecyclerView.Adapter<MatchRvAdapter.ViewHolder> {
 
-    List<Event> events = new ArrayList<>();
+    private List<Event> events = new ArrayList<>();
 
     public MatchRvAdapter() {
+    }
+
+    public void bindData(List<Event> items){
+        events.clear();
+        if (items.size() > 0)
+            events.addAll(items);
+
+        notifyDataSetChanged();
     }
 
     @NonNull
