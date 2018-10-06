@@ -4,7 +4,9 @@ import android.annotation.SuppressLint;
 import android.databinding.DataBindingUtil;
 import android.rezkyauliapratama.com.unittesttraining.databinding.ActivityMainBinding;
 import android.rezkyauliapratama.com.unittesttraining.network.NetworkApi;
+import android.rezkyauliapratama.com.unittesttraining.schema.Event;
 import android.rezkyauliapratama.com.unittesttraining.schema.ListEvent;
+import android.rezkyauliapratama.com.unittesttraining.util.TimeUtil;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,6 +19,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.Arrays;
+import java.util.Date;
 
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
@@ -65,12 +68,21 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("CheckResult")
     private void fetchData(String id) {
-
+        TimeUtil timeUtil = new TimeUtil();
         mNetworkApi.getPastMatchLeague(id)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(response -> {
                     if (response != null){
+                        if (response.getEvents() != null){
+                            for (Event event : response.getEvents()){
+                                Date date = timeUtil.convertStringToDate(event.getDateEvent());
+                                String userFriendlyDate = timeUtil.getUserFriendlyDate(date);
+                                if (userFriendlyDate != null){
+                                    event.setDateEvent(userFriendlyDate);
+                                }
+                            }
+                        }
                         adapter.bindData(response.getEvents());
                     }else{
                         Toast.makeText(this,"Error", Toast.LENGTH_LONG).show();
