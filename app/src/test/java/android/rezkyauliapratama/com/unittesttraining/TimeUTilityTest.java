@@ -37,7 +37,7 @@ public class TimeUTilityTest {
 
     @Before
     public void setUp() throws Exception {
-        SUT = new TimeUtil();
+        SUT = new TimeUtil(simpleDateFormat);
         date = new Date();/*Mockito.mock(Date.class);*/
         correctDate();
     }

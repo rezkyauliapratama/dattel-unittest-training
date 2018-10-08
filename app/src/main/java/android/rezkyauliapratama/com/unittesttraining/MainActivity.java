@@ -77,10 +77,11 @@ public class MainActivity extends AppCompatActivity {
                     if (response != null){
                         if (response.getEvents() != null){
                             for (Event event : response.getEvents()){
-                                TimeUtil timeUtil = new TimeUtil();
-                                Date date = timeUtil.convertStringToDate(event.getDateEvent());
+                                TimeUtil timeUtil1 = new TimeUtil(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()));
+                                Date date = timeUtil1.convertStringToDate(event.getDateEvent());
 
-                                String userFriendlyDate = timeUtil.getUserFriendlyDate(date);
+                                TimeUtil timeUtil2 = new TimeUtil(new SimpleDateFormat("dd MMMM yyyy",Locale.getDefault()));
+                                String userFriendlyDate = timeUtil2.getUserFriendlyDate(date);
 
                                 if (userFriendlyDate != null){
                                     event.setDateEvent(userFriendlyDate);
