@@ -2,6 +2,7 @@ package android.rezkyauliapratama.com.unittesttraining;
 
 import android.annotation.SuppressLint;
 import android.databinding.DataBindingUtil;
+import android.rezkyauliapratama.com.unittesttraining.Event.FetchUseCaseEvent;
 import android.rezkyauliapratama.com.unittesttraining.databinding.ActivityMainBinding;
 import android.rezkyauliapratama.com.unittesttraining.network.NetworkApi;
 import android.rezkyauliapratama.com.unittesttraining.schema.Event;
@@ -21,6 +22,7 @@ import com.google.gson.GsonBuilder;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import io.reactivex.Single;
@@ -32,10 +34,11 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements FetchUseCaseEvent.Listener{
 
     NetworkApi mNetworkApi;
     MatchRvAdapter adapter;
+    FetchUseCaseEvent fetchUseCaseEvent;
 
     ActivityMainBinding binding;
 
@@ -44,9 +47,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
+
         initRetrofit();
         initSpinner();
         initRv();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        fetchUseCaseEvent.registerListener(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        fetchUseCaseEvent.unregisterListener(this);
     }
 
     private void initSpinner() {
@@ -58,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         binding.spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                   fetchData(leaguesId[i]);
+                   fetchUseCaseEvent.fetchLastEventAndNotify(leaguesId[i]);
             }
 
             @Override
@@ -66,36 +82,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-    }
-
-    @SuppressLint("CheckResult")
-    private void fetchData(String id) {
-        mNetworkApi.getPastMatchLeague(id)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(response -> {
-                    if (response != null){
-                        if (response.getEvents() != null){
-                            for (Event event : response.getEvents()){
-                                TimeUtil timeUtil1 = new TimeUtil(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()));
-                                Date date = timeUtil1.convertStringToDate(event.getDateEvent());
-
-                                TimeUtil timeUtil2 = new TimeUtil(new SimpleDateFormat("dd MMMM yyyy",Locale.getDefault()));
-                                String userFriendlyDate = timeUtil2.getUserFriendlyDate(date);
-
-                                if (userFriendlyDate != null){
-                                    event.setDateEvent(userFriendlyDate);
-                                }
-                            }
-                        }
-                        adapter.bindData(response.getEvents());
-                    }else{
-                        Toast.makeText(this,"Error", Toast.LENGTH_LONG).show();
-                    }
-
-                }, throwable -> {
-                    Toast.makeText(this,"Error : " + throwable.getMessage(), Toast.LENGTH_LONG).show();
-                });
     }
 
     private void initRv() {
@@ -112,7 +98,21 @@ public class MainActivity extends AppCompatActivity {
                 .baseUrl("https://www.thesportsdb.com/").build();
 
         mNetworkApi = retrofit.create(NetworkApi.class);
+
+
+        fetchUseCaseEvent = new FetchUseCaseEvent(mNetworkApi);
     }
 
 
+    @Override
+    public void onEventFetchSuccess(List<Event> events) {
+        adapter.bindData(events);
+
+    }
+
+    @Override
+    public void onEventFetchFailure() {
+        Toast.makeText(this,"Error", Toast.LENGTH_LONG).show();
+
+    }
 }
