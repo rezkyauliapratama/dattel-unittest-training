@@ -18,8 +18,10 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Locale;
 
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
@@ -68,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("CheckResult")
     private void fetchData(String id) {
-        TimeUtil timeUtil = new TimeUtil();
         mNetworkApi.getPastMatchLeague(id)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -76,8 +77,11 @@ public class MainActivity extends AppCompatActivity {
                     if (response != null){
                         if (response.getEvents() != null){
                             for (Event event : response.getEvents()){
+                                TimeUtil timeUtil = new TimeUtil();
                                 Date date = timeUtil.convertStringToDate(event.getDateEvent());
+
                                 String userFriendlyDate = timeUtil.getUserFriendlyDate(date);
+
                                 if (userFriendlyDate != null){
                                     event.setDateEvent(userFriendlyDate);
                                 }
