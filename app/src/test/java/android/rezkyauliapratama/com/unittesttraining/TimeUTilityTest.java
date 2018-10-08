@@ -56,12 +56,9 @@ public class TimeUTilityTest {
         verify(simpleDateFormatMock).parse(ac.capture());
         String result = ac.getValue();
         assertThat(result, is(STR_DATE));
-
     }
 
     private void correctDate() throws ParseException {
-
         Mockito.when(simpleDateFormatMock.parse(ArgumentMatchers.any(String.class))).thenReturn(date);
-
     }
 }
